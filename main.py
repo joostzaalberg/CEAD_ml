@@ -3,29 +3,31 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
-# imports
+# import packages
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 
+# import scripts and functions
+from functions import import_csv
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+data_path = 'data/[test_data]_dashboard_temperatures_2022-08-06T00-00-00_2022-09-04T23-59-59.csv'
 
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('Joost')
-    print(f'sin(5) using numpy = {np.round(np.sin(5), 3)}')
 
-    print(torch.randn(5,4))
+    # print(f'sin(5) using numpy = {np.round(np.sin(5), 3)}')
+    #
+    # print(torch.randn(5,4))
+    # import data
+    df = import_csv(data_path)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    # do some outlier removal (manually)
+    df1 = df[df['HZ1'] < 500]
 
-# noting to add
+    # reverse df dataset to get
+    df1 = df1[::-1]
 
-# even less to add
-
-# and more and more less!!
+    # plotting
+    df1.plot.line(x='time', y='HZ1')
+    plt.show()
