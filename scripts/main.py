@@ -13,11 +13,19 @@ import sklearn as sk
 import itertools
 from datetime import datetime, time
 from sklearn.model_selection import train_test_split
+# import scripts and functions
+from functions import *
 
 print('imports succesfull')
 
-# import scripts and functions
-from functions import *
+
+
+# setting pd print width and rows
+pd.options.display.width = 0
+pd.set_option('display.max_rows', 100)
+pd.set_option('display.min_rows', 50)
+# if reset is required:
+# pd.reset_option('all')
 
 # datetime things
 start_date_str = '2022-09-23 12:21:00.000'
@@ -42,5 +50,16 @@ plt.plot(df_s['screw_rpm (RPM)'] / 10, label='screw (rpm/10)')
 plt.legend()
 plt.show()
 
+
 print(df_s.describe())
+print(df_s)
+
+df2 = df_add_column_history(df_s, 'bead_width (mm)', 5, steps=1)
+
+print(df2)
+# TO DO: GET THE FUNCTION ABOVE WORKING!! (on screw RPM!)
+
+
+
+
 

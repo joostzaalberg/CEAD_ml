@@ -2,6 +2,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def import_csv(data_path: str):
+    """
+    This function loads the data only. Basically just pd.read_csv().
+    """
     df = pd.read_csv(data_path)
     # print(df)
 
@@ -53,3 +56,24 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
     # smooth = df_s['bead_width (mm)'].rolling(window=10, win_type='gaussian', center=True).mean(std=10)
 
     return df
+
+def df_add_column_history(df : pd.DataFrame, column_name : str, n_columns : int, steps=1) -> pd.DataFrame:
+    """"
+    The function adds n extra data columns of the selected column name. Please note that there are 5 data points in a
+    second, so for every second of extra history, there should be 5 columns. Change interval to positive integer to
+    increase the step size.
+    """
+
+    dfc = df.copy(deep=True)
+    # first column
+    dfc[f'{column_name}_{steps * 0.2}s'] = dfc.loc[:, f'{column_name}'].shift(steps)
+    # remove head
+    dfc.drop(dfc.tail(steps).index, inplace=True)
+
+    # then the rest
+    for n in range(2, n_columns+1):
+        # add shifted column
+        dfc[f'{column_name}_{steps*n*0.2}s'] = dfc.loc[:, f'{column_name}_{steps*n-1*0.2}s'].shift(steps)
+        # remove head
+        dfc.drop(dfc.tail(steps).index, inplace=True)
+
