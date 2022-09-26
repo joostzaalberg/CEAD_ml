@@ -35,9 +35,12 @@ end_s = '2022-09-23 14:17:30.000'
 
 # import, filter and outlier replacement
 df_s = import_csv_filt(loc_s, start_s, end_s, plot_outliers=True)
-print(df_s)
+# print(df_s)
 
 plt.plot(df_s['bead_width (mm)'], label='bead width (mm)')
 plt.plot(df_s['screw_rpm (RPM)'] / 10, label='screw (rpm/10)')
 plt.legend()
 plt.show()
+
+print(df_s.describe())
+
