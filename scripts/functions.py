@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -63,17 +64,28 @@ def df_add_column_history(df : pd.DataFrame, column_name : str, n_columns : int,
     second, so for every second of extra history, there should be 5 columns. Change interval to positive integer to
     increase the step size.
     """
-
+    # deepcopy, otherwise original df gets edited.
     dfc = df.copy(deep=True)
+
     # first column
-    dfc[f'{column_name}_{steps * 0.2}s'] = dfc.loc[:, f'{column_name}'].shift(steps)
+    new_name = f'{column_name}_{np.round(steps * 0.2, 1)}s'
+    old_name = column_name
+    dfc[new_name] = dfc.loc[:, old_name].shift(-steps)
     # remove head
     dfc.drop(dfc.tail(steps).index, inplace=True)
 
+    old_name = new_name
+
     # then the rest
     for n in range(2, n_columns+1):
+        new_name = f'{column_name}_{np.round(steps*n*0.2, 1)}s'
+
         # add shifted column
-        dfc[f'{column_name}_{steps*n*0.2}s'] = dfc.loc[:, f'{column_name}_{steps*n-1*0.2}s'].shift(steps)
+        dfc[new_name] = dfc.loc[:, old_name].shift(-steps)
         # remove head
         dfc.drop(dfc.tail(steps).index, inplace=True)
+
+        old_name = new_name
+
+    return dfc
 

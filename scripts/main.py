@@ -5,6 +5,8 @@
 
 # import packages
 import numpy as np
+import matplotlib
+matplotlib.use('Qt5Agg')  # toggle for linux users (PyCharm terminal: pip install pyqt5 )
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
@@ -51,12 +53,12 @@ plt.legend()
 plt.show()
 
 
-print(df_s.describe())
-print(df_s)
-
-df2 = df_add_column_history(df_s, 'bead_width (mm)', 5, steps=1)
-
-print(df2)
+# print(df_s.describe())
+# print(df_s)
+#
+# df2 = df_add_column_history(df_s, 'screw_rpm (RPM)', 5, steps=2)
+#
+# print(df2)
 # TO DO: GET THE FUNCTION ABOVE WORKING!! (on screw RPM!)
 
 
