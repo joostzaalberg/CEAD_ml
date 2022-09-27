@@ -44,22 +44,28 @@ start_s = '2022-09-23 14:04:45.000'
 end_s = '2022-09-23 14:17:30.000'
 
 # import, filter and outlier replacement
-df_s = import_csv_filt(loc_s, start_s, end_s, plot_outliers=True)
+df_s = import_csv_filt(loc_s, start_s, end_s, plot_outliers=False)
 # print(df_s)
 
-plt.plot(df_s['bead_width (mm)'], label='bead width (mm)')
-plt.plot(df_s['screw_rpm (RPM)'] / 10, label='screw (rpm/10)')
+# plt.plot(df_s.loc[6600:6900, 'time'], df_s.loc[6600:6900, 'bead_width (mm)'], label='bead width (mm)')
+# plt.plot(df_s.loc[6600:6900, 'time'], df_s.loc[6600:6900, 'screw_rpm (RPM)'] / 10, label='screw (rpm/10)')
+# plt.plot(df_s.loc[6600:6900, 'time'], df_s.loc[6600:6900, 'screw_torque (Nm)'] / 5, label='screw (Nm/5)')
+
+df_s['bead_width (mm)'].plot()
+
+
+
 plt.legend()
 plt.show()
 
+# works!
+df2 = df_add_column_history(df_s, 'screw_rpm (RPM)', 5, steps=2)
 
-# print(df_s.describe())
-# print(df_s)
-#
-# df2 = df_add_column_history(df_s, 'screw_rpm (RPM)', 5, steps=2)
-#
-# print(df2)
-# TO DO: GET THE FUNCTION ABOVE WORKING!! (on screw RPM!)
+# TODO: build beginning of the ML framework!
+
+# look at data how much of a time delay should be included into a data point
+# data import: get to np array
+# split into training and testing set (np.random.seed(42))
 
 
 

@@ -30,6 +30,15 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
     # Filter on given dates
     df = df[(df['time'] > start_date) & (df['time'] < end_date)]
 
+    # reverse dataset to time increasing while going through the dataset
+    df = df[::-1]
+    # df['index'] = range(0, len(df))
+    # df = df.set_index('index')
+    df = df.reset_index(drop=True)
+
+    print(df)
+
+
     # shift bead data up to compensate for later reading of the bead
     df.loc[:, 'bead_width (mm)'] = df.loc[:, 'bead_width (mm)'].shift(-n)
     df.drop(df.tail(n).index, inplace=True)
@@ -55,6 +64,8 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
     # if smoothing:
     ## smoothing
     # smooth = df_s['bead_width (mm)'].rolling(window=10, win_type='gaussian', center=True).mean(std=10)
+
+    print(df)
 
     return df
 
