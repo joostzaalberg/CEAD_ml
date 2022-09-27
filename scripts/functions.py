@@ -15,12 +15,13 @@ def import_csv(data_path: str):
 def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl=True,
                     plot_outliers=False) -> pd.DataFrame:
     """
-    This function loads the data, filters on the given time window and filters and fills outliers with a rolling
-    window median.
+    This function loads the data, filters on the given time window, reverses the sequence to have the latest point
+    first and resets index. Then, it shifts the bead measurement 17 steps upward to compensate for the difference in
+    time because it is measured later, and then it filters and fills outliers with a rolling window median.
     """
     # shifting bead parameters
     n = 17  # 17*0.2 = 3.4s =~ 12/360*100
-    # Defining outlier detection parameters
+    # Defining outlier detection parameters (seems to work with trial and error)
     window_size = 8
     outlier_thres_mm = 3
 
@@ -32,12 +33,7 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
 
     # reverse dataset to time increasing while going through the dataset
     df = df[::-1]
-    # df['index'] = range(0, len(df))
-    # df = df.set_index('index')
     df = df.reset_index(drop=True)
-
-    print(df)
-
 
     # shift bead data up to compensate for later reading of the bead
     df.loc[:, 'bead_width (mm)'] = df.loc[:, 'bead_width (mm)'].shift(-n)
@@ -65,38 +61,42 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
     ## smoothing
     # smooth = df_s['bead_width (mm)'].rolling(window=10, win_type='gaussian', center=True).mean(std=10)
 
-    print(df)
-
     return df
 
-def df_add_column_history(df : pd.DataFrame, column_name : str, n_columns : int, steps=1) -> pd.DataFrame:
+
+def df_add_column_history(df : pd.DataFrame, column_name : str or list, n_columns : int, steps=1) -> pd.DataFrame:
     """"
     The function adds n extra data columns of the selected column name. Please note that there are 5 data points in a
-    second, so for every second of extra history, there should be 5 columns. Change interval to positive integer to
-    increase the step size.
+    second, so for every second of extra history, there should be 5 columns. Change steps to positive integer to
+    increase the step size. Resets index.
     """
     # deepcopy, otherwise original df gets edited.
     dfc = df.copy(deep=True)
 
-    # first column
-    new_name = f'{column_name}_{np.round(steps * 0.2, 1)}s'
-    old_name = column_name
-    dfc[new_name] = dfc.loc[:, old_name].shift(-steps)
+    if n_columns == 0:
+        return dfc
+    if type(column_name) == str:
+        column_name = [column_name]
+    if type(column_name) != list or type(column_name[0]) != str:
+        raise "error: column_name should be a string or list of strings"
+
+    for name in column_name:
+        # first column
+        new_name = f'{name}_{np.round(steps * 0.2, 1)}s'
+        old_name = name
+        dfc[new_name] = dfc.loc[:, old_name].shift(steps)
+
+        # then the rest
+        for n in range(2, n_columns+1):
+            old_name = new_name
+            new_name = f'{name}_{np.round(steps*n*0.2, 1)}s'
+
+            # add shifted column
+            dfc[new_name] = dfc.loc[:, old_name].shift(steps)
+
     # remove head
-    dfc.drop(dfc.tail(steps).index, inplace=True)
-
-    old_name = new_name
-
-    # then the rest
-    for n in range(2, n_columns+1):
-        new_name = f'{column_name}_{np.round(steps*n*0.2, 1)}s'
-
-        # add shifted column
-        dfc[new_name] = dfc.loc[:, old_name].shift(-steps)
-        # remove head
-        dfc.drop(dfc.tail(steps).index, inplace=True)
-
-        old_name = new_name
+    dfc.drop(dfc.head(steps*n_columns).index, inplace=True)
+    dfc = dfc.reset_index(drop=True)
 
     return dfc
 

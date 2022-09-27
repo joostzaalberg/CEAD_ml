@@ -6,7 +6,6 @@
 # import packages
 import numpy as np
 import matplotlib
-matplotlib.use('Qt5Agg')  # toggle for linux users (PyCharm terminal: pip install pyqt5 )
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
@@ -17,7 +16,7 @@ from datetime import datetime, time
 from sklearn.model_selection import train_test_split
 # import scripts and functions
 from functions import *
-
+matplotlib.use('Qt5Agg')  # toggle for linux users (PyCharm terminal: pip install pyqt5 )
 print('imports succesfull')
 
 
@@ -43,27 +42,21 @@ loc_s = '../data/dataset_small_23-09_14.04.45-14.17.30.csv'
 start_s = '2022-09-23 14:04:45.000'
 end_s = '2022-09-23 14:17:30.000'
 
-# import, filter and outlier replacement
+# import, filter and outlier replacement on bead_width (mm)
 df_s = import_csv_filt(loc_s, start_s, end_s, plot_outliers=False)
-# print(df_s)
 
-# plt.plot(df_s.loc[6600:6900, 'time'], df_s.loc[6600:6900, 'bead_width (mm)'], label='bead width (mm)')
-# plt.plot(df_s.loc[6600:6900, 'time'], df_s.loc[6600:6900, 'screw_rpm (RPM)'] / 10, label='screw (rpm/10)')
-# plt.plot(df_s.loc[6600:6900, 'time'], df_s.loc[6600:6900, 'screw_torque (Nm)'] / 5, label='screw (Nm/5)')
+# choose which columns to keep
+columns_to_keep = ['bead_width (mm)', 'screw_rpm (RPM)']
+df_s = df_s[columns_to_keep]
 
-df_s['bead_width (mm)'].plot()
-
-
-
-plt.legend()
-plt.show()
-
-# works!
-df2 = df_add_column_history(df_s, 'screw_rpm (RPM)', 5, steps=2)
+# add some history of some columns
+to_expand_columns = ['screw_rpm (RPM)']
+df_s = df_add_column_history(df_s, to_expand_columns, n_columns=3, steps=1)
 
 # TODO: build beginning of the ML framework!
 
-# look at data how much of a time delay should be included into a data point
+# look at data how much of a time delay should be included into a data point -> about 22 * dt!
+# Should we make it 25? step 1, 3 or 5?
 # data import: get to np array
 # split into training and testing set (np.random.seed(42))
 
