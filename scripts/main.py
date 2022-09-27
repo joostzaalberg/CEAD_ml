@@ -16,17 +16,16 @@ from datetime import datetime, time
 from sklearn.model_selection import train_test_split
 # import scripts and functions
 from functions import *
-matplotlib.use('Qt5Agg')  # toggle for linux users (PyCharm terminal: pip install pyqt5 )
 print('imports succesfull')
 
 
-
-# setting pd print width and rows
+# setting pd and matplotlib print width and rows
 pd.options.display.width = 0
 pd.set_option('display.max_rows', 100)
 pd.set_option('display.min_rows', 50)
 # if reset is required:
 # pd.reset_option('all')
+matplotlib.use('Qt5Agg')  # toggle for linux users (PyCharm terminal: pip install pyqt5 )
 
 # datetime things
 start_date_str = '2022-09-23 12:21:00.000'
@@ -51,14 +50,31 @@ df_s = df_s[columns_to_keep]
 
 # add some history of some columns
 to_expand_columns = ['screw_rpm (RPM)']
-df_s = df_add_column_history(df_s, to_expand_columns, n_columns=3, steps=1)
+# df_s = df_add_column_history(df_s, to_expand_columns, n_columns=12, steps=2)
+
+X, y = split_to_np_feat_and_ans(df_s)
 
 # TODO: build beginning of the ML framework!
 
-# look at data how much of a time delay should be included into a data point -> about 22 * dt!
-# Should we make it 25? step 1, 3 or 5?
-# data import: get to np array
-# split into training and testing set (np.random.seed(42))
+# defining ML constants
+test_size = 0.2
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
+
+from sklearn.linear_model import SGDRegressor
+from sklearn.metrics import r2_score
+clf = SGDRegressor(loss='squared_error', penalty='l2', max_iter=1000)
+clf.fit(X, y)
+
+
+y_pred = clf.predict(X_test)
+
+print(np.stack((y_test, y_pred), axis = 0))
+
+
+
+print('r2 score is : ', r2_score(y_test, y_pred))
+
+
 
 
 

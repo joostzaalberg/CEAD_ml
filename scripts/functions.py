@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+
 def import_csv(data_path: str):
     """
     This function loads the data only. Basically just pd.read_csv().
@@ -27,6 +28,9 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
 
     # reading in data
     df = pd.read_csv(data_path)
+
+    # fill nan with last known value. sequence is still reverse, so forward = backward.
+    df = df.fillna(method='ffill')
 
     # Filter on given dates
     df = df[(df['time'] > start_date) & (df['time'] < end_date)]
@@ -64,7 +68,7 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
     return df
 
 
-def df_add_column_history(df : pd.DataFrame, column_name : str or list, n_columns : int, steps=1) -> pd.DataFrame:
+def df_add_column_history(df: pd.DataFrame, column_name: str or list, n_columns: int, steps=1) -> pd.DataFrame:
     """"
     The function adds n extra data columns of the selected column name. Please note that there are 5 data points in a
     second, so for every second of extra history, there should be 5 columns. Change steps to positive integer to
@@ -87,16 +91,22 @@ def df_add_column_history(df : pd.DataFrame, column_name : str or list, n_column
         dfc[new_name] = dfc.loc[:, old_name].shift(steps)
 
         # then the rest
-        for n in range(2, n_columns+1):
+        for n in range(2, n_columns + 1):
             old_name = new_name
-            new_name = f'{name}_{np.round(steps*n*0.2, 1)}s'
+            new_name = f'{name}_{np.round(steps * n * 0.2, 1)}s'
 
             # add shifted column
             dfc[new_name] = dfc.loc[:, old_name].shift(steps)
 
     # remove head
-    dfc.drop(dfc.head(steps*n_columns).index, inplace=True)
+    dfc.drop(dfc.head(steps * n_columns).index, inplace=True)
     dfc = dfc.reset_index(drop=True)
 
     return dfc
 
+
+def split_to_np_feat_and_ans(df: pd.DataFrame) -> (np.array, np.array):
+    X = df.loc[:, df.columns != 'bead_width (mm)'].to_numpy(dtype=float, copy=True)
+    y = df.loc[:, 'bead_width (mm)'].to_numpy(dtype=float, copy=True)
+
+    return X, y
