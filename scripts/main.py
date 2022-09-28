@@ -48,27 +48,35 @@ df_s = import_csv_filt(loc_s, start_s, end_s, plot_outliers=False)
 columns_to_keep = ['bead_width (mm)', 'screw_rpm (RPM)']
 df_s = df_s[columns_to_keep]
 
+df_s.plot.scatter(x='bead_width (mm)', y='screw_rpm (RPM)', alpha=0.5)
+plt.show()
+
 # add some history of some columns
 to_expand_columns = ['screw_rpm (RPM)']
-# df_s = df_add_column_history(df_s, to_expand_columns, n_columns=12, steps=2)
+df_s = df_add_column_history(df_s, to_expand_columns, n_columns=0, steps=2)
 
 X, y = split_to_np_feat_and_ans(df_s)
 
 # TODO: build beginning of the ML framework!
+# scale data and normalise data
+#
+
 
 # defining ML constants
 test_size = 0.2
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
 
 from sklearn.linear_model import SGDRegressor
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 clf = SGDRegressor(loss='squared_error', penalty='l2', max_iter=1000)
+clf = LinearRegression() # try this one
 clf.fit(X, y)
 
 
 y_pred = clf.predict(X_test)
 
-print(np.stack((y_test, y_pred), axis = 0))
+print(np.round(np.stack((y_test, y_pred), axis = 0), 0))
 
 
 
