@@ -110,3 +110,6 @@ def split_to_np_feat_and_ans(df: pd.DataFrame) -> (np.array, np.array):
     y = df.loc[:, 'bead_width (mm)'].to_numpy(dtype=float, copy=True)
 
     return X, y
+
+if __name__ == '__main__':
+    pass

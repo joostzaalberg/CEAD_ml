@@ -4,6 +4,8 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 # import packages
+import sys
+import subprocess
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -19,13 +21,24 @@ from functions import *
 print('imports succesfull')
 
 
-# setting pd and matplotlib print width and rows
+# setting pd print width and rows and matplotlib
 pd.options.display.width = 0
 pd.set_option('display.max_rows', 100)
 pd.set_option('display.min_rows', 50)
 # if reset is required:
 # pd.reset_option('all')
-matplotlib.use('Qt5Agg')  # toggle for linux users (PyCharm terminal: pip install pyqt5 )
+
+# toggle for linux users (Terminal: pip install pyqt5 )
+if sys.platform == "linux" or sys.platform == "linux2":
+    print('Linux is detected, matplotlib backend changed to Qt5Agg')
+    package = 'pyqt5'
+    try:
+        import package
+    except ImportError as e:
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
+    matplotlib.use('Qt5Agg')
+else:
+    matplotlib.use("TkAgg") # standard for Windows and Mac
 
 # datetime things
 start_date_str = '2022-09-23 12:21:00.000'
@@ -48,6 +61,7 @@ df_s = import_csv_filt(loc_s, start_s, end_s, plot_outliers=False)
 columns_to_keep = ['bead_width (mm)', 'screw_rpm (RPM)']
 df_s = df_s[columns_to_keep]
 
+# plot
 df_s.plot.scatter(x='bead_width (mm)', y='screw_rpm (RPM)', alpha=0.5)
 plt.show()
 
