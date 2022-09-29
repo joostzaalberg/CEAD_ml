@@ -20,7 +20,7 @@ def import_csv(data_path: str):
 
 
 def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl=True,
-                    plot_outliers=False) -> pd.DataFrame:
+                    plot_outliers=False, median_filt=True, reset_index=True) -> pd.DataFrame:
     """
     This function loads the data, filters on the given time window, reverses the sequence to have the latest point
     first and resets index. Then, it shifts the bead measurement 17 steps upward to compensate for the difference in
@@ -31,6 +31,9 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
     # Defining outlier detection parameters (seems to work with trial and error)
     window_size = 8
     outlier_thres_mm = 3
+    # median filter params
+    filter_length = 20
+    head_tails = int(filter_length/2)
 
     # reading in data
     df = pd.read_csv(data_path)
@@ -66,11 +69,17 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
         # replace
         df.loc[outliers_idx, 'bead_width (mm)'] = df['bead_width (mm)'].rolling(window_size, center=True).median().loc[
             outliers_idx]
-
-    # if smoothing:
-    ## smoothing
-    # smooth = df_s['bead_width (mm)'].rolling(window=10, win_type='gaussian', center=True).mean(std=10)
-
+        
+    if median_filt:
+        print('median filt ACTIVATED')
+        df.loc[:,'bead_width (mm)'] = df.loc[:, 'bead_width (mm)'].rolling(window=filter_length, center=True).median()
+        
+    if reset_index:
+        df.drop(df.head(head_tails).index.union(df.tail(head_tails).index), inplace=True)
+        df = df.reset_index(drop=True)
+        
+        
+        
     return df
 
 
