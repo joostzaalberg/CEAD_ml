@@ -20,7 +20,7 @@ def import_csv(data_path: str):
 
 
 def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl=True,
-                    plot_outliers=False, median_filt=True, reset_index=True) -> pd.DataFrame:
+                    plot_outliers=False, median_filt=True, reset_index=True, outlier_window = 20, outlier_thres = 3) -> pd.DataFrame:
     """
     This function loads the data, filters on the given time window, reverses the sequence to have the latest point
     first and resets index. Then, it shifts the bead measurement 17 steps upward to compensate for the difference in
@@ -29,8 +29,8 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
     # shifting bead parameters
     n = 17  # 17*0.2 = 3.4s =~ 12/360*100
     # Defining outlier detection parameters (seems to work with trial and error)
-    window_size = 8
-    outlier_thres_mm = 3
+    window_size = outlier_window
+    outlier_thres_mm = outlier_thres
     # median filter params
     filter_length = 20
     head_tails = int(filter_length/2)
