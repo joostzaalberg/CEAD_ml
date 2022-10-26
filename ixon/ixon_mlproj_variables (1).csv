@@ -1,0 +1,13 @@
+Identifier,Name,Address,Type,Width,Signed,Max string length,Factor,Unit
+bead-width,bead-width,33.0,float,32,,,1.0000000,mm
+heating-setpoint-hz-1,heating-setpointHZ1,33.20,float,32,,,1.0000000,℃
+heating-setpoint-hz-2,heating-setpointHZ2,33.28,float,32,,,1.0000000,℃
+heating-setpoint-hz-3,heating-setpointHZ3,33.36,float,32,,,1.0000000,℃
+heating-setpoint-hz-4,heating-setpointHZ4,33.44,float,32,,,1.0000000,℃
+rotation-screw-rpm,rotation-screwRPM,33.4,float,32,,,1.0000000,RPM
+rotation-screw-torque,rotation-screwTorque,33.12,float,32,,,1.0000000,Nm
+rotation-setpoint,rotation-setpoint,33.8,float,32,,,1.0000000,RPM
+temperature-hz-1,temperature-Hz1,33.16,float,32,,,1.0000000,°C
+temperature-hz-2,temperature-Hz2,33.24,float,32,,,1.0000000,°C
+temperature-hz-3,temperature-Hz3,33.32,float,32,,,1.0000000,°C
+temperature-hz-4,temperature-Hz4,33.40,float,32,,,1.0000000,°C

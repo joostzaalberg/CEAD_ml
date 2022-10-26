@@ -1,0 +1,13 @@
+Identifier,Address,Name,Logging interval,Retention policy,Edge aggregator,On change expiry,Log event,Trigger address,Trigger condition,Trigger threshold
+bead-width,33.0,bead-width,200ms,260w,avg,,interval,,,
+heating-setpoint-hz-1,33.20,Heating Setpoint HZ1,200ms,260w,last,,interval,,,
+heating-setpoint-hz-2,33.28,Heating Setpoint HZ2,200ms,260w,last,,interval,,,
+heating-setpoint-hz-3,33.36,Heating Setpoint HZ3,200ms,260w,last,,interval,,,
+heating-setpoint-hz-4,33.44,Heating Setpoint HZ4,200ms,260w,last,,interval,,,
+rotation-setpoint,33.8,rotation-setpoint,200ms,260w,last,,interval,,,
+screw-rpm,33.4,Screw RPM,200ms,260w,last,,interval,,,
+screw-torque,33.12,Screw Torque,200ms,260w,last,,interval,,,
+temperature-hz-1,33.16,Temperature HZ1,200ms,260w,last,,interval,,,
+temperature-hz-2,33.24,Temperature HZ2,200ms,260w,last,,interval,,,
+temperature-hz-3,33.32,Temperature HZ3,200ms,260w,last,,interval,,,
+temperature-hz-4,33.40,Temperature HZ4,200ms,260w,last,,interval,,,
