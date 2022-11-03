@@ -27,7 +27,9 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
     time because it is measured later, and then it filters and fills outliers with a rolling window median.
     """
     # shiftin bead parameters
-    n = 46  # 13*0.2 = 2.66s =~ 15/360*64    # Defining outlier detection parameters (seems to work with trial and error)
+    n = 53  # 53*0.05 = 2.6s =~ 14.9/360*64    
+    
+    # Defining outlier detection parameters (seems to work with trial and error)
     window_size = outlier_window
     outlier_thres_mm = outlier_thres
     # median filter params
@@ -37,8 +39,8 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
     # reading in data
     df = pd.read_csv(data_path)
 
-    # fill nan with last known value. sequence is still reverse, so forward = backward.
-    df = df.fillna(method='ffill')
+    # fill nan with last known value.
+    df = df.fillna(method='bfill')
 
     # Filter on given dates
     df = df[(df['time'] > start_date) & (df['time'] < end_date)]

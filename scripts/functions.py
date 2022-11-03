@@ -27,7 +27,7 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
     time because it is measured later, and then it filters and fills outliers with a rolling window median.
     """
     # shiftin bead parameters
-    n = 53  # 53*0.05 = 2.6s =~ 14.9/360*64    
+    n = 47  # 53*0.05 = 2.35s. Experimentally determined with stopwatch :/  (!=~ 14.9/360*64) 
     
     # Defining outlier detection parameters (seems to work with trial and error)
     window_size = outlier_window
@@ -48,7 +48,7 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
     # reverse dataset to time increasing while going through the dataset
     # df = df[::-1]
     df = df.reset_index(drop=True)
-    df['time'] = df['time'] - df.loc[0, 'time']  # make time scale
+    df['time'] = df['time'] - df.loc[0, 'time']  # make time scale start at 0
 
     # shift bead data up to compensate for later reading of the bead
     df.loc[:, 'width'] = df.loc[:, 'width'].shift(-n)
