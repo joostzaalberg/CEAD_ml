@@ -23,11 +23,11 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
                     plot_outliers=False, median_filt=True, reset_index=True, outlier_window = 20, outlier_thres = 3) -> pd.DataFrame:
     """
     This function loads the data, filters on the given time window, reverses the sequence to have the latest point
-    first and resets index. Then, it shifts the bead measurement 17 steps upward to compensate for the difference in
+    first and resets index. Then, it shifts the bead measurement n steps upward to compensate for the difference in
     time because it is measured later, and then it filters and fills outliers with a rolling window median.
     """
-    # shifting bead parameters
-    n = 11  # 13*0.2 = 2.66s =~ 15/360*64    # Defining outlier detection parameters (seems to work with trial and error)
+    # shiftin bead parameters
+    n = 46  # 13*0.2 = 2.66s =~ 15/360*64    # Defining outlier detection parameters (seems to work with trial and error)
     window_size = outlier_window
     outlier_thres_mm = outlier_thres
     # median filter params
@@ -44,34 +44,35 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
     df = df[(df['time'] > start_date) & (df['time'] < end_date)]
 
     # reverse dataset to time increasing while going through the dataset
-    df = df[::-1]
+    # df = df[::-1]
     df = df.reset_index(drop=True)
+    df['time'] = df['time'] - df.loc[0, 'time']  # make time scale
 
     # shift bead data up to compensate for later reading of the bead
-    df.loc[:, 'bead_width (mm)'] = df.loc[:, 'bead_width (mm)'].shift(-n)
+    df.loc[:, 'width'] = df.loc[:, 'width'].shift(-n)
     df.drop(df.tail(n).index, inplace=True)
 
     # get indexes of outliers
-    outliers_idx = (df['bead_width (mm)'] -
-                    df['bead_width (mm)'].rolling(window_size, center=True).median()).abs() > outlier_thres_mm
+    outliers_idx = (df['width'] -
+                    df['width'].rolling(window_size, center=True).median()).abs() > outlier_thres_mm
 
     if plot_outliers:
         # plot
-        plt.plot(df['bead_width (mm)'], label='bead width (mm)')
-        plt.plot(df['bead_width (mm)'].loc[outliers_idx], '.r', label='dropped')
-        plt.plot(df['bead_width (mm)'].rolling(window_size, center=True).median().loc[outliers_idx], '.y',
+        plt.plot(df['time'], df['width'], label='width')
+        plt.plot(df['time'].loc[outliers_idx], df['width'].loc[outliers_idx], '.r', label='dropped')
+        plt.plot(df['time'].loc[outliers_idx], df['width'].rolling(window_size, center=True).median().loc[outliers_idx], '.y',
                  label='replaced by')
         plt.legend()
         plt.show()
 
     if outlier_repl:
         # replace
-        df.loc[outliers_idx, 'bead_width (mm)'] = df['bead_width (mm)'].rolling(window_size, center=True).median().loc[
+        df.loc[outliers_idx, 'width'] = df['width'].rolling(window_size, center=True).median().loc[
             outliers_idx]
         
     if median_filt:
         print('median filt ACTIVATED')
-        df.loc[:,'bead_width (mm)'] = df.loc[:, 'bead_width (mm)'].rolling(window=filter_length, center=True).median()
+        df.loc[:,'width'] = df.loc[:, 'width'].rolling(window=filter_length, center=True).median()
         
     if reset_index:
         df.drop(df.head(head_tails).index.union(df.tail(head_tails).index), inplace=True)
@@ -120,8 +121,8 @@ def df_add_column_history(df: pd.DataFrame, column_name: str or list, n_columns:
 
 
 def split_to_np_feat_and_ans(df: pd.DataFrame) -> (np.array, np.array):
-    X = df.loc[:, df.columns != 'bead_width (mm)'].to_numpy(dtype=float, copy=True)
-    y = df.loc[:, 'bead_width (mm)'].to_numpy(dtype=float, copy=True)
+    X = df.loc[:, df.columns != 'width'].to_numpy(dtype=float, copy=True)
+    y = df.loc[:, 'width'].to_numpy(dtype=float, copy=True)
 
     return X, y
 
