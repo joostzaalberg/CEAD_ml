@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # imports related to scoring
+from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
@@ -20,7 +21,8 @@ def import_csv(data_path: str):
 
 
 def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl=True,
-                    plot_outliers=False, median_filt=True, reset_index=True, outlier_window = 20, outlier_thres = 3) -> pd.DataFrame:
+                    plot_outliers=False, median_filt=True, reset_index=True, correct_hight = True,
+                    plot_correction = False, outlier_window = 20, outlier_thres = 3) -> pd.DataFrame:
     """
     This function loads the data, filters on the given time window, reverses the sequence to have the latest point
     first and resets index. Then, it shifts the bead measurement n steps upward to compensate for the difference in
@@ -46,9 +48,11 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
     df = df[(df['time'] > start_date) & (df['time'] < end_date)]
 
     # reverse dataset to time increasing while going through the dataset
-    # df = df[::-1]
+    # df = df[::-1] NOT NEEDED WITH NEW DATA LOGGING METHOD
     df = df.reset_index(drop=True)
-    df['time'] = df['time'] - df.loc[0, 'time']  # make time scale start at 0
+    
+     # make time scale start at 0
+    df['time'] = df['time'] - df.loc[0, 'time'] 
 
     # shift bead data up to compensate for later reading of the bead
     df.loc[:, 'width'] = df.loc[:, 'width'].shift(-n)
@@ -65,22 +69,78 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
         plt.plot(df['time'].loc[outliers_idx], df['width'].rolling(window_size, center=True).median().loc[outliers_idx], '.y',
                  label='replaced by')
         plt.legend()
+        plt.title('Replaced Outliers')
+        plt.xlabel('time (s)')
+        plt.ylabel('width (mm)')
         plt.show()
 
     if outlier_repl:
         # replace
+        print('outliers detected and replaced')
         df.loc[outliers_idx, 'width'] = df['width'].rolling(window_size, center=True).median().loc[
             outliers_idx]
-        
+    
     if median_filt:
-        print('median filt ACTIVATED')
+        print('data median filtered')
         df.loc[:,'width'] = df.loc[:, 'width'].rolling(window=filter_length, center=True).median()
-        
+    
     if reset_index:
+        print('index reset')
         df.drop(df.head(head_tails).index.union(df.tail(head_tails).index), inplace=True)
         df = df.reset_index(drop=True)
+    
+    fit_lin = LinearRegression().fit(np.array(df['time']).reshape(-1,1),
+                                         np.array(df['width']).reshape(-1,1))
+
+    a = fit_lin.coef_[0]
+    b = fit_lin.intercept_
+    
+    if reset_index:
+        print('index reset')
+        df.drop(df.head(head_tails).index.union(df.tail(head_tails).index), inplace=True)
+        df = df.reset_index(drop=True)
+    
+    if plot_correction:
+        timeseries = np.linspace(0, 5500)
+        line = timeseries * a + b
+
+        plt.plot(df.loc[:, 'time'], df.loc[:, 'width'], 'darkcyan', label='median filtered data')
+        plt.plot(timeseries, line, 'r', label = 'linear fit')
+        plt.legend()
+        plt.title('Current full data set with non-steady avg bead width')
+        plt.xlabel('time (s)')
+        plt.ylabel('width (mm)')
+        plt.show()
+
         
+    if correct_hight:
+        print('linear change over time in avg. width corrected')
+        # fit data to lin regression model
+        fit_lin = LinearRegression().fit(np.array(df['time']).reshape(-1,1),
+                                         np.array(df['width']).reshape(-1,1))
+
+        a = fit_lin.coef_[0]
+        b = fit_lin.intercept_
         
+        df['width'] = df['width'] - a * df['time']
+        
+    if plot_correction:
+        fit_lin_corr = LinearRegression().fit(np.array(df['time']).reshape(-1,1),
+                                              np.array(df['width']).reshape(-1,1))
+
+        a_corr = fit_lin_corr.coef_[0]
+        b_corr = fit_lin_corr.intercept_
+
+        print(f'a, b = {a_corr}, {b_corr}')
+        line_corr = timeseries * a_corr + b_corr
+
+        plt.plot(df.loc[:, 'time'], df.loc[:, 'width'], 'darkcyan', label='median filtered data')
+        plt.plot(timeseries, line_corr, 'r', label = 'linear fit')
+        plt.legend()
+        plt.title('Current full data set steady avg bead with')
+        plt.xlabel('time (s)')
+        plt.ylabel('width (mm)')
+        plt.show()  
         
     return df
 
