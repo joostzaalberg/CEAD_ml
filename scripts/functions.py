@@ -29,7 +29,7 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
     time because it is measured later, and then it filters and fills outliers with a rolling window median.
     """
     # shiftin bead parameters
-    n = 47  # 53*0.05 = 2.35s. Experimentally determined with stopwatch :/  (!=~ 14.9/360*64) 
+    n = 34  # 53*0.05 = 2.35s. Experimentally determined with stopwatch :/  (!=~ 14.9/360*64) 
     
     # Defining outlier detection parameters (seems to work with trial and error)
     window_size = outlier_window
