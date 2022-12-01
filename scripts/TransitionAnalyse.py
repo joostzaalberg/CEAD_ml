@@ -57,6 +57,7 @@ class TransitionAnalyse:
         self.__jump_time_dict = None
         self.__lin_coef = None
         self.__poly2_coef = None
+        self.__jump_times = None
         
     def get_data(self):
         return self.__data
@@ -348,6 +349,7 @@ class TransitionAnalyse:
         max_jump = int(max_rpm - min_rpm)
         rpm_range = list(range(-max_jump, max_jump + 1))
         rpm_range.remove(0)  
+        rpm_range = np.array(rpm_range)
         self.__jump_time_dict = {}
         per_jumpsize_time_dict = {}
         
@@ -362,9 +364,9 @@ class TransitionAnalyse:
             times = []
             for line in lines[2]:
                 # 1st second mean
-                mean_before = np.mean(line[ :20])
+                mean_before = np.nanmean(line[ :20])
                 # last second mean 
-                mean_after  = np.mean(line[-20:])
+                mean_after  = np.nanmean(line[-20:])
                 dba = abs(mean_after - mean_before)
                 
                 thres = stop_threshold * dba
@@ -380,25 +382,29 @@ class TransitionAnalyse:
                     stop_t = np.nan
             times = np.array(times)
             if not times == np.array([]):
-                self.__jump_time_dict[key] = [times, np.mean(times[:, 0])]
+                self.__jump_time_dict[key] = [times, np.nanmean(times[:, 0])]
 
             # else:
             #     self.__jump_time_dict[key] = [times, np.mean(times[:, 0])]
         
-        sorted_lst_times = [None]*30
-        
-        print(sorted_lst_times)
+        sorted_lst_times = np.zeros((30))
             
-        print('jumptimes are:')
         for rpm, rpm_jumptimes in per_jumpsize_time_dict.items():
-            print(f'jump: {rpm}, time: {np.round(np.mean(rpm_jumptimes),2)}')
             if rpm<0:
-                sorted_lst_times[rpm+15] = rpm_jumptimes
+                if np.all(rpm_jumptimes != np.nan) and len(rpm_jumptimes)!= 0:
+                    sorted_lst_times[rpm+15] = np.nanmean(rpm_jumptimes)
+                else:
+                    sorted_lst_times[rpm+15] = np.nan
             else:
-                sorted_lst_times[rpm+15-1] = rpm_jumptimes
+                if np.all(rpm_jumptimes != np.nan) and len(rpm_jumptimes)!= 0:
+                    sorted_lst_times[rpm+15-1] = np.nanmean(rpm_jumptimes)
+                else:
+                    sorted_lst_times[rpm+15-1] = np.nan
+                    
         
-        list_of_mean_jump_times = []
-        print(list_of_mean_jump_times)
-        
-        plt.plot(rpm_range, list_of_mean_jump_times)
+                
+        mask = np.isfinite(sorted_lst_times)
+        plt.plot(rpm_range[mask], sorted_lst_times[mask], linestyle='', markersize=8, marker='o')
         plt.show()
+        
+        self.__jump_times = np.array([rpm_range[mask], sorted_lst_times[mask]])
