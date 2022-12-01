@@ -21,7 +21,7 @@ def import_csv(data_path: str):
 
 
 def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl=True,
-                    plot_outliers=False, median_filt=True, reset_index=True, correct_hight = True,
+                    plot_outliers=False, median_filt=True, reset_index=True, correct_hight = False,
                     plot_correction = False, outlier_window = 20, outlier_thres = 3) -> pd.DataFrame:
     """
     This function loads the data, filters on the given time window, reverses the sequence to have the latest point
@@ -101,7 +101,7 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
         df = df.reset_index(drop=True)
     
     if plot_correction:
-        timeseries = np.linspace(0, 5500)
+        timeseries = np.linspace(0, len(df['width'])/filter_length)
         line = timeseries * a + b
 
         plt.plot(df.loc[:, 'time'], df.loc[:, 'width'], 'darkcyan', label='median filtered data')
