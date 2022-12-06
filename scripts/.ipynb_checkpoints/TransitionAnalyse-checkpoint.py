@@ -165,10 +165,11 @@ class TransitionAnalyse:
         
     pairsT=list[list[int]]
         
-    def plot_specific_jumps(self, pairs: pairsT, alpha=0.4):
+    def plot_specific_jumps(self, pairs: pairsT, alpha=0.3, mean_c = None):
         ''' Plot all jumps and mean of specific jumps.'''
         # x-axis time span
-        x = np.linspace(-self.__seconds_before, self.__seconds_after, self.__points_a + self.__points_b+1)
+        x = np.linspace(-self.__seconds_before, self.__seconds_after, self.__points_a +
+                        self.__points_b+1)
         items = list(self.__jump_dict.items())
         np.random.seed(42)
         
@@ -176,15 +177,20 @@ class TransitionAnalyse:
             from_rpm, to_rpm = pair
         
             lines = self.__jump_dict[(from_rpm, to_rpm)]
-
+            rndm_color = np.random.rand()
             # plot every line
             for line in lines[2]:
-                plt.plot(x, line, alpha=alpha, c = cm.prism(np.random.rand()), linewidth = 2)
+                plt.plot(x, line, alpha=alpha, c = cm.prism(rndm_color), linewidth = 2)
 
             # plot mean
-            plt.plot(x, lines[0], 
-                     label = f'rpms {from_rpm}' +r' $\rightarrow$ ' + f'{to_rpm} MEAN', alpha=1,
-                     c = 'black', linewidth = 2)
+            if mean_c is None:
+                plt.plot(x, lines[0], 
+                         label = f'rpms {from_rpm}' +r' $\rightarrow$ ' + f'{to_rpm}', alpha=1,
+                         c = cm.prism(rndm_color), linewidth = 3)
+            else:
+                plt.plot(x, lines[0], 
+                         label = f'rpms {from_rpm}' +r' $\rightarrow$ ' + f'{to_rpm}', alpha=1,
+                         c = mean_c, linewidth = 3)
         
         plt.legend()
         plt.xlabel('time after rpm change (s)')
@@ -340,7 +346,7 @@ class TransitionAnalyse:
         return 1
     
     
-    def give_mean_jump_time(self, per_stepsize = True):
+    def give_mean_jump_time(self, per_stepsize=True, plot=True):
         
         # define thresholds
         stop_threshold = 0.1  # 10%
@@ -367,6 +373,7 @@ class TransitionAnalyse:
                 mean_before = np.nanmean(line[ :20])
                 # last second mean 
                 mean_after  = np.nanmean(line[-20:])
+                # difference before-after
                 dba = abs(mean_after - mean_before)
                 
                 thres = stop_threshold * dba
@@ -404,7 +411,12 @@ class TransitionAnalyse:
         
                 
         mask = np.isfinite(sorted_lst_times)
-        plt.plot(rpm_range[mask], sorted_lst_times[mask], linestyle='', markersize=8, marker='o')
-        plt.show()
+        if plot:
+            plt.plot(rpm_range[mask], sorted_lst_times[mask], linestyle='', markersize=8, marker='o')
+            plt.title(f'time from rpm change untill {int(np.round(100*stop_threshold,0))}% of total '
+                      'width change')
+            plt.xlabel('jump step size (rpm)')
+            plt.ylabel('mean jump time (s)')
+            plt.show()
         
         self.__jump_times = np.array([rpm_range[mask], sorted_lst_times[mask]])

@@ -20,7 +20,7 @@ def import_csv(data_path: str):
     return df
 
 
-def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl=True,
+def import_csv_filt(data_path: int, start_date: int, end_date: str, outlier_repl=True,
                     plot_outliers=False, median_filt=True, reset_index=True, correct_hight = False,
                     plot_correction = False, outlier_window = 20, outlier_thres = 3) -> pd.DataFrame:
     """
@@ -45,7 +45,14 @@ def import_csv_filt(data_path: str, start_date: str, end_date: str, outlier_repl
     df = df.fillna(method='bfill')
 
     # Filter on given dates
-    df = df[(df['time'] > start_date) & (df['time'] < end_date)]
+    if isinstance(start_date, str) and isinstance(end_date, float):
+        df = df[(df['time'] > start_date) & (df['time'] < end_date)]
+    elif isinstance(start_date, str) and end_date == None:
+        df = df[(df['time'] < end_date)]
+    elif start_date == None and isinstance(end_date, float):
+        df = df[(df['time'] < end_date)]
+    else:
+        print('data set not filtered on time')
 
     # reverse dataset to time increasing while going through the dataset
     # df = df[::-1] NOT NEEDED WITH NEW DATA LOGGING METHOD
