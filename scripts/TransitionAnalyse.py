@@ -20,9 +20,17 @@ from sklearn.pipeline import make_pipeline
 
 
 class TransitionAnalyse:
+    """
+    The class holding all information and functions of the dataset. Initialise the class using a pandas data frame and
+    then use the class functions to retrieve the information from the data set.
+    """
 
     def __init__(self, df):
+        """
+        Initialises the class.
 
+        :param df: a pandas.DataFrame variable, imported using the import_csv_filt function in functions.py.
+        """
         if isinstance(df, pd.DataFrame):
             if set(['time', 'width', 'rpm', 'rpm_sp', 'torque', 'hz1', 'hz1_sp', 'hz2', 'hz2_sp',
                     'hz3', 'hz3_sp', 'hz4', 'hz4_sp']).issubset(df.columns):
@@ -60,10 +68,19 @@ class TransitionAnalyse:
         self.__jump_times = None
 
     def get_data(self):
+        """
+        Returns the current data set.
+        :return: The current pandas.dataframe held by the class instance
+        """
         return self.__data
 
     def sort(self):
-        # locations (True/False) at which rpm is about to change (the next idx it will) 
+        """
+        Sorts the data set's transitions by from-rpm and to-rpm. This is necessary to do for the retrieval the right
+        information from the many transitions.
+        :return: int (1), it means success.
+        """
+        # locations (True/False) at which rpm is about to change (the next idx it will)
         change_idx = self.__rpm_sp[:-1] != self.__rpm_sp[1:]
         # the numbers at which ^
         self.__change_idx_numbers = np.where(change_idx == True)[
@@ -87,11 +104,6 @@ class TransitionAnalyse:
         # Where all the bin edges are in the dataset (!)
         bin_edges_ds = self.__change_idx_numbers[self.__final_sort_idx[self.__bin_edges[:-1]]]
 
-        # print(self.__rpm_sp[bin_edges_ds])
-        # print(from_to_columns[self.__final_sort_idx][:10])
-        # print('bin_edges are:\n', self.__bin_edges)
-        # print('\n\n\n\n------------------ look underneath pls ----------------\nedge sorted (1:from, 2:to) idx for the original dataset!\n\n')
-
         # The idx numbers in which the dataset has the last rpm before change
         final_sort_ds_from = self.__change_idx_numbers[self.__final_sort_idx]
         # The idx numbers in whicht the dataset has the first rpm after change 
@@ -100,6 +112,11 @@ class TransitionAnalyse:
         return 1
 
     def fill_dicts(self):
+        """
+        Fills the jump dictionary. Must run class function "TransitionAnalyse.sort()" first. The jump dictionary has
+        the form key = (from_rpm, to_rpm) and item=[mean, mean_normalised, np.array of all jumps]
+        :return: int (1), it means success.
+        """
         self.__points_b = self.__seconds_before * self.__resolution
         self.__points_a = self.__seconds_after * self.__resolution
         self.__jump_dict = {}
@@ -126,14 +143,24 @@ class TransitionAnalyse:
 
             # calculating mean
             mean = np.sum(y, axis=0) / n_jumps
-            # normalising for middle 60% of the data
+            # normalising for middle 60% of the data, filters some min and max here.
             minioem, maxioem = np.quantile(mean, [0.20, 0.80])
             mean_norm = (mean - minioem) / (maxioem - minioem)
 
             # filling dicts
             self.__jump_dict[(self.__rpm_sp[ds_idx], self.__rpm_sp[ds_idx + 1])] = (mean, mean_norm, y)
 
+        return 1
+
+
     def plot_norm_jumps(self, random=True, min_jump_threshold=2, alpha=0.1):
+        """
+        Plots all the normalised transitions in a single graph. Normalises for the inner .6 quantile.
+        :param random: If True, plots all graphs in random order. Is nice for graph aesthetics.
+        :param min_jump_threshold: Int > 0. If set higher then 0, smaller transitions are omitted.
+        :param alpha: sets line transparenty in the plots
+        :return: int (1), it means success.
+        """
         # x-axis time span
         x = np.linspace(-self.__seconds_before, self.__seconds_after, self.__points_a + self.__points_b + 1)
 
@@ -162,10 +189,18 @@ class TransitionAnalyse:
         plt.ylabel('bead width (mm)')
         plt.show()
 
-    pairsT = list[list[int]]
+        return 1
 
-    def plot_specific_jumps(self, pairs: pairsT, alpha=0.3, mean_c=None):
-        ''' Plot all jumps and mean of specific jumps.'''
+
+    def plot_specific_jumps(self, pairs, alpha=0.3, mean_c=None):
+        '''
+        plots the individual transitions selected using the pairs parameter. Not normalised.
+
+        :param pairs: list of list pairs of intergers. Represent the from-to rpm pairs you want to plot.
+        :param alpha: set line transparity of the individual transitions in the plot
+        :param mean_c: sets the color of the mean line in the plot
+        :return: int (1), it means succes
+        '''
         # x-axis time span
         x = np.linspace(-self.__seconds_before, self.__seconds_after, self.__points_a +
                         self.__points_b + 1)
@@ -197,6 +232,11 @@ class TransitionAnalyse:
         plt.show()
 
     def show_rpm_stats(self):
+        '''
+        shows the from and to and from-to distributions of the used RPMs in the data set.
+
+        :return: int (1), it means succes
+        '''
         # getting the right rpm data from the dataset
         change_idx = self.__rpm_sp[:-1] != self.__rpm_sp[1:]
         change_from = self.__rpm_sp[:-1][change_idx]
@@ -255,7 +295,17 @@ class TransitionAnalyse:
         plt.yticks(size_ticks, ticks)
         plt.show()
 
+        return 1
+
     def fit_relations(self, lin=True, poly=True, plot=False, add_columns=True):
+        '''
+        Fits a linear, second degree polynomial or both relations to the width-rpm relation.
+        :param lin: if True, fits linear model
+        :param poly: if True, fits second degree polynomial model
+        :param plot: if True, plots the models to the KDE density plot
+        :param add_columns: If True, adds the new expected width columns to the dataframe.
+        :return: int (1), it means succes.
+        '''
 
         # kde threshold for filtering points on high kde areas
         kde_thres = 0.05
@@ -336,14 +386,28 @@ class TransitionAnalyse:
             plt.ylabel('width (mm)')
             plt.show()
 
+        return 1
+
     def reset_np_data(self):
-        '''Reset de numpy data arrays width and rmp_sp, if they are somehow altered or damaged'''
+        '''
+        resets the np data class variables if they somehow have been altered. Which can't unless class is rewritten.
+        :return: int (1), it means succes
+        '''
         self.__width = np.array(self.__data['width'])
         self.__rpm_sp = np.array(self.__data['rpm_sp'])
 
         return 1
 
     def give_mean_jump_time(self, per_stepsize=True, plot=True, spread=False):
+        """
+        Calculates the mean transition time per jump rpm step size. The time is measured from rpm change to when the
+        transition has reached 90% of its change in bead width.
+
+        :param per_stepsize: If True, the transition times are calculated by transition rpm step size
+        :param plot: If True, the results are plotted
+        :param spread: if True, the individual measurements are also shown.
+        :return: int (1), it means succes.
+        """
 
         # define thresholds
         stop_threshold = 0.1  # 10%
@@ -423,3 +487,5 @@ class TransitionAnalyse:
             plt.show()
 
         self.__jump_times = np.array([rpm_range[mask], sorted_lst_times[mask]])
+
+        return 1
