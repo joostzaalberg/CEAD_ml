@@ -22,7 +22,7 @@ def import_csv(data_path: str):
 
 def import_csv_filt(data_path: int, start_date: int, end_date: str, outlier_repl=True,
                     plot_outliers=False, median_filt=True, reset_index=True, correct_hight = False,
-                    plot_correction = False, outlier_window = 20, outlier_thres = 3) -> pd.DataFrame:
+                    plot_correction = False, outlier_window = 8, outlier_thres = 3) -> pd.DataFrame:
     """
     This function loads the data, filters on the given time window, reverses the sequence to have the latest point
     first and resets index. Then, it shifts the bead measurement n steps upward to compensate for the difference in
@@ -144,7 +144,7 @@ def import_csv_filt(data_path: int, start_date: int, end_date: str, outlier_repl
         plt.plot(df.loc[:, 'time'], df.loc[:, 'width'], 'darkcyan', label='median filtered data')
         plt.plot(timeseries, line_corr, 'r', label = 'linear fit')
         plt.legend()
-        plt.title('Current full data set steady avg bead with')
+        plt.title('Current full data set steady avg bead width')
         plt.xlabel('time (s)')
         plt.ylabel('width (mm)')
         plt.show()  
