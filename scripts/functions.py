@@ -13,6 +13,9 @@ from sklearn.metrics import r2_score
 def import_csv(data_path: str):
     """
     This function loads the data only. Basically just pd.read_csv().
+
+    :param data_path: a string leading to the .csv file
+    :return: a pandas.dataframe class.
     """
     df = pd.read_csv(data_path)
     # print(df)
@@ -20,13 +23,26 @@ def import_csv(data_path: str):
     return df
 
 
-def import_csv_filt(data_path: int, start_date: int, end_date: str, outlier_repl=True,
+def import_csv_filt(data_path: str, start_date: int, end_date: str, outlier_repl=True,
                     plot_outliers=False, median_filt=True, reset_index=True, correct_hight = False,
                     plot_correction = False, outlier_window = 8, outlier_thres = 3) -> pd.DataFrame:
     """
     This function loads the data, filters on the given time window, reverses the sequence to have the latest point
     first and resets index. Then, it shifts the bead measurement n steps upward to compensate for the difference in
     time because it is measured later, and then it filters and fills outliers with a rolling window median.
+
+    :param data_path: string to the .csv file
+    :param start_date: a time integer of where to start. If None is given, it starts at the beginning of the .csv file.
+    :param end_date: a time integer of where to stop. If None is given, it ends on the end of the .csv file.
+    :param outlier_repl: If True, it replaces outliers
+    :param plot_outliers: If True, it shows you which outliers have been replaced by which data points
+    :param median_filt: if True, the data is median filtered
+    :param reset_index: if True, the data's index is reset
+    :param correct_height: if True, the data is corrected for degrading surface.
+    :param plot_correction: if True, the height correction is plotted
+    :param outlier_window: int hyperparameter, the window size of the outlier median filter
+    :param outlier_thres: float hyperparameter, the threshold for when to call an outlier an outlier.
+    :return: the newly acquired pandas.DataFrame
     """
     # shiftin bead parameters
     n = 34  # 53*0.05 = 2.35s. Experimentally determined with stopwatch :/  (!=~ 14.9/360*64) 
@@ -153,10 +169,16 @@ def import_csv_filt(data_path: int, start_date: int, end_date: str, outlier_repl
 
 
 def df_add_column_history(df: pd.DataFrame, column_name: str or list, n_columns: int, steps=1) -> pd.DataFrame:
-    """"
+    """
     The function adds n extra data columns of the selected column name. Please note that there are 5 data points in a
     second, so for every second of extra history, there should be 5 columns. Change steps to positive integer to
     increase the step size. Resets index.
+
+    :param df: pandas.DataFrame
+    :param column_name: Column name (str of list(str)) to add history from
+    :param n_columns: number of columns of history to add
+    :param steps: step size between histories. 1 means every 1 datapoint is saved.
+    :return: the newly acquired data frame.
     """
     # deepcopy, otherwise original df gets edited.
     dfc = df.copy(deep=True)
@@ -190,12 +212,24 @@ def df_add_column_history(df: pd.DataFrame, column_name: str or list, n_columns:
 
 
 def split_to_np_feat_and_ans(df: pd.DataFrame) -> (np.array, np.array):
+    """
+    Splits df to X and y np arrays. y containing the width, X the other features
+
+    :param df: pandas.DataFrame containing "width" and other features
+    :return: np.array, np.array
+    """
     X = df.loc[:, df.columns != 'width'].to_numpy(dtype=float, copy=True)
     y = df.loc[:, 'width'].to_numpy(dtype=float, copy=True)
 
     return X, y
 
 def give_prediction_score(y_true: np.ndarray, y_pred: np.ndarray) -> int:
+    """
+    Prints the prediction score of the given y_true and y_pred np.array's.
+    :param y_true: a np.array of the true width values
+    :param y_pred: a np.array of the predicted width values
+    :return: int (1), it means success.
+    """
     print(  'mean squared error is : ', mean_squared_error(y_true, y_pred))
     print(  '          r2 score is : ', r2_score(y_true, y_pred))
     print('\n      std of error is : ', np.std(y_pred - y_true))

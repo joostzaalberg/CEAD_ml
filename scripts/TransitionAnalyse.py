@@ -22,7 +22,23 @@ from sklearn.pipeline import make_pipeline
 class TransitionAnalyse:
     """
     The class holding all information and functions of the dataset. Initialise the class using a pandas data frame and
-    then use the class functions to retrieve the information from the data set.
+    then use the class functions to retrieve the information from the data set. If the class is initialised, it should
+    be used in the following sequence:
+
+    from TransitionAnalyse import TransitionAnalyse as ta
+    from functions import csv_data_filt
+
+    df = csv_data_filt(string_to_csv, None, None)
+    petg30gf = ta(df)  # must be done first
+    petg30gf.sort()  # must be done first
+    petg30gf.fill_dicts()  # must be done first
+    petg30gf.plot_norm_jumps()
+    petg30gf.show_rpm_stats()
+    petg30gf.fit_relations(plot=True)
+    petg30gf.plot_norm_jumps()
+    petg30gf.plot_specific_jumps([[22,29],[23,22],[22,25]])
+    petg30gf.give_mean_jump_time(spread=True)
+
     """
 
     def __init__(self, df):
@@ -70,7 +86,7 @@ class TransitionAnalyse:
     def get_data(self):
         """
         Returns the current data set.
-        :return: The current pandas.dataframe held by the class instance
+        :return: The current pandas.dataframe held by the class instance.
         """
         return self.__data
 
@@ -157,8 +173,8 @@ class TransitionAnalyse:
         """
         Plots all the normalised transitions in a single graph. Normalises for the inner .6 quantile.
         :param random: If True, plots all graphs in random order. Is nice for graph aesthetics.
-        :param min_jump_threshold: Int > 0. If set higher then 0, smaller transitions are omitted.
-        :param alpha: sets line transparenty in the plots
+        :param min_jump_threshold: Int > 0. If set higher than 0, smaller transitions are omitted.
+        :param alpha: sets line transparency in the plots
         :return: int (1), it means success.
         """
         # x-axis time span
