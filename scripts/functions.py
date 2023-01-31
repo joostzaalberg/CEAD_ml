@@ -25,7 +25,7 @@ def import_csv(data_path: str):
 
 def import_csv_filt(data_path: str, start_date: int, end_date: str, outlier_repl=True,
                     plot_outliers=False, median_filt=True, reset_index=True, correct_hight = False,
-                    plot_correction = False, outlier_window = 8, outlier_thres = 3) -> pd.DataFrame:
+                    plot_correction = False, outlier_window = 8, outlier_thres = 3, make_time_rel=True, plot_T=False, suppress=False) -> pd.DataFrame:
     """
     This function loads the data, filters on the given time window, reverses the sequence to have the latest point
     first and resets index. Then, it shifts the bead measurement n steps upward to compensate for the difference in
@@ -61,21 +61,23 @@ def import_csv_filt(data_path: str, start_date: int, end_date: str, outlier_repl
     df = df.fillna(method='bfill')
 
     # Filter on given dates
-    if isinstance(start_date, str) and isinstance(end_date, float):
+    if isinstance(start_date, float) and isinstance(end_date, float):
         df = df[(df['time'] > start_date) & (df['time'] < end_date)]
-    elif isinstance(start_date, str) and end_date == None:
+    elif isinstance(start_date, float) and end_date == None:
         df = df[(df['time'] < end_date)]
     elif start_date == None and isinstance(end_date, float):
         df = df[(df['time'] < end_date)]
     else:
-        print('data set not filtered on time')
+        if not suppress:
+            print('data set not filtered on time')
 
     # reverse dataset to time increasing while going through the dataset
     # df = df[::-1] NOT NEEDED WITH NEW DATA LOGGING METHOD
     df = df.reset_index(drop=True)
     
      # make time scale start at 0
-    df['time'] = df['time'] - df.loc[0, 'time'] 
+    if make_time_rel:
+        df['time'] = df['time'] - df.loc[0, 'time'] 
 
     # shift bead data up to compensate for later reading of the bead
     df.loc[:, 'width'] = df.loc[:, 'width'].shift(-n)
@@ -99,16 +101,19 @@ def import_csv_filt(data_path: str, start_date: int, end_date: str, outlier_repl
 
     if outlier_repl:
         # replace
-        print('outliers detected and replaced')
+        if not suppress:
+            print('outliers detected and replaced')
         df.loc[outliers_idx, 'width'] = df['width'].rolling(window_size, center=True).median().loc[
             outliers_idx]
     
     if median_filt:
-        print('data median filtered')
+        if not suppress:
+            print('data median filtered')
         df.loc[:,'width'] = df.loc[:, 'width'].rolling(window=filter_length, center=True).median()
     
     if reset_index:
-        print('index reset')
+        if not suppress:
+            print('index reset')
         df.drop(df.head(head_tails).index.union(df.tail(head_tails).index), inplace=True)
         df = df.reset_index(drop=True)
     
@@ -119,7 +124,8 @@ def import_csv_filt(data_path: str, start_date: int, end_date: str, outlier_repl
     b = fit_lin.intercept_
     
     if reset_index:
-        print('index reset')
+        if not suppress:
+            print('index reset')
         df.drop(df.head(head_tails).index.union(df.tail(head_tails).index), inplace=True)
         df = df.reset_index(drop=True)
     
@@ -137,7 +143,8 @@ def import_csv_filt(data_path: str, start_date: int, end_date: str, outlier_repl
 
         
     if correct_hight:
-        print('linear change over time in avg. width corrected')
+        if not suppress:
+            print('linear change over time in avg. width corrected')
         # fit data to lin regression model
         fit_lin = LinearRegression().fit(np.array(df['time']).reshape(-1,1),
                                          np.array(df['width']).reshape(-1,1))
@@ -153,8 +160,8 @@ def import_csv_filt(data_path: str, start_date: int, end_date: str, outlier_repl
 
         a_corr = fit_lin_corr.coef_[0]
         b_corr = fit_lin_corr.intercept_
-
-        print(f'a, b = {a_corr}, {b_corr}')
+        if not suppress:
+            print(f'a, b = {a_corr}, {b_corr}')
         line_corr = timeseries * a_corr + b_corr
 
         plt.plot(df.loc[:, 'time'], df.loc[:, 'width'], 'darkcyan', label='median filtered data')
@@ -163,7 +170,20 @@ def import_csv_filt(data_path: str, start_date: int, end_date: str, outlier_repl
         plt.title('Current full data set steady avg bead width')
         plt.xlabel('time (s)')
         plt.ylabel('width (mm)')
-        plt.show()  
+        plt.show()
+        
+    if plot_T:
+        mean_T = (df.loc[:, 'hz1'] + df.loc[:, 'hz2'] +df.loc[:, 'hz3'] + df.loc[:, 'hz4'])/4 # 
+        plt.plot(df.loc[:, 'time'], mean_T, 'red', label='mean_temperature')
+        plt.plot(df.loc[:, 'time'], df.loc[:, 'hz1'], label='hz1')
+        plt.plot(df.loc[:, 'time'], df.loc[:, 'hz2'], label='hz2')
+        plt.plot(df.loc[:, 'time'], df.loc[:, 'hz3'], label='hz3')
+        plt.plot(df.loc[:, 'time'], df.loc[:, 'hz4'], label='hz4')
+        plt.legend()
+        plt.title('Temperatures')
+        plt.xlabel('time (s)')
+        plt.ylabel('T (Celcius)')
+        plt.show()
         
     return df
 
